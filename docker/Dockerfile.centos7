@@ -1,0 +1,44 @@
+FROM centos:centos7
+
+RUN yum -y install cmake wget git flex bison libudev1-devel which
+RUN yum -y install make gcc gcc-c++ kernel-devel ncurses-devel
+
+RUN yum -y install openssl-devel zlib-devel openjpeg-devel libpng-devel bzip2 libgit2-devel boost-devel
+RUN yum -y install xorg-x11-server-Xvfb qt-creator qt5-qtbase-devel
+
+RUN yum -y install qt5-linguist qt5-qtserialport-devel qt5-qtsvg-devel
+RUN yum -y install mesa-dri-drivers
+RUN yum -y install centos-release-scl
+RUN yum-config-manager --enable rhel-server-rhscl-7-rpms
+RUN yum -y install devtoolset-7
+
+
+RUN ln -s /usr/bin/qmake-qt5 /usr/bin/qmake
+RUN ln -s /usr/bin/lrelease-qt5 /usr/bin/lrelease
+
+RUN yum clean all
+
+RUN groupadd -g 1000 conan1 && \
+    groupadd -g 1001 conan2 && \
+    groupadd -g 2000 travis && \
+    mkdir /etc/sudoers.d && \
+    useradd -ms /bin/bash conan -u 1000 -g conan1 -G conan2,travis,999 && \
+    echo "conan ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/conan && \
+    chmod 0440 /etc/sudoers.d/conan
+
+WORKDIR /home/conan
+USER conan
+
+# No SHA verification for now. Will be automated by Conan in the future.
+RUN set -xe \
+    && wget -q -O - https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.bz2 | tar xj
+
+RUN set -xe \
+    && wget -q -O - https://github.com/libgit2/libgit2/archive/v0.28.1.tar.gz | tar xz \
+    && mv libgit2-0.28.1 libgit2 \
+    && mkdir libgit2/build \
+    && cd libgit2/build \
+    && scl enable devtoolset-7 "cmake -D BUILD_SHARED_LIBS=OFF .." \
+    && scl enable devtoolset-7 "cmake --build . -- -j4" \
+    && cd ../../
+

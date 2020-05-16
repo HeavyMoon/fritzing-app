@@ -55,11 +55,12 @@ void VersionChecker::fetch()
 	m_xml.clear();
 	QUrl url(m_urlString);
 
-	QNetworkAccessManager * manager = new QNetworkAccessManager(this);
-	connect(manager, SIGNAL(finished(QNetworkReply *)), this, SLOT(finished(QNetworkReply *)));
-	QNetworkReply * reply = manager->get(QNetworkRequest(url));
-	QMutexLocker locker(&m_networkReplyLock);
-	m_networkReply = reply;
+	// FIXME: change non blocking code
+	// QNetworkAccessManager * manager = new QNetworkAccessManager(this);
+	// connect(manager, SIGNAL(finished(QNetworkReply *)), this, SLOT(finished(QNetworkReply *)));
+	// QNetworkReply * reply = manager->get(QNetworkRequest(url));
+	// QMutexLocker locker(&m_networkReplyLock);
+	// m_networkReply = reply;
 }
 
 
